@@ -1,15 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.models.order import Order
-from app.database.models.order_item import OrderItem
-from app.database.models.stock_batch import StockBatch
+from app.repositories.models.order import Order
+from app.repositories.models.order_item import OrderItem
+from app.repositories.models.stock_batch import StockBatch
 from sqlalchemy import update, select, asc # asc - по возрастанию (первые - самые старые партии)
 from datetime import timezone
+
 
 async def create_order_with_items(session: AsyncSession, dto):
     stmt_check = select(Order).where(Order.posting_number == dto.posting_number)
     res_check = await session.execute(stmt_check)
     existing_order = res_check.scalar_one_or_none()
-    
+
     if existing_order:
         return  # Если заказ уже есть в базе, просто выходим. Для Озона это будет успех (200 OK)
 
@@ -59,7 +60,7 @@ async def create_order_with_items(session: AsyncSession, dto):
         #    )
         #   session.add(overdue_batch)
 
-    
+
     await session.commit()
 
 async def update_order_status(session: AsyncSession, dto):
@@ -82,5 +83,5 @@ async def update_order_status(session: AsyncSession, dto):
         # Если вебхук свежий — обновляем статус
         order.status = dto.new_state.value
         # Поле updated_at обновится автоматически благодаря onupdate=lambda: datetime.now(timezone.utc)
-        
+
         await session.commit()

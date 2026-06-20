@@ -1,6 +1,6 @@
 from sqlalchemy import String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database.db import Base
+from app.database import Base
 
 
 class Product(Base):

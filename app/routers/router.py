@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, Body, status
 from fastapi.responses import JSONResponse
+from app.repositories.dependencies import get_repo_obj
+from app.repositories.order_repo import OrderRepository
 import app.schemas.notification as notification_schemas
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.db import get_db
+from app.database import get_db
 from app.crud.orderdb import create_order_with_items, update_order_status
+from typing import Any
+
+from app.services.handle_order import NotificationHandler
 
 
 router = APIRouter(
@@ -14,11 +19,25 @@ router = APIRouter(
 
 @router.post("/notification")
 async def handle_ozon_webhook(
-    payload: dict = Body(...),
-    session: AsyncSession = Depends(get_db)
+    payload: dict[str, Any] = Body(...),
+    repo: OrderRepository = Depends(get_repo_obj)
 ):
 
     try:
+        notification_type: = payload.get("message_type")
+        handler = NotificationHandler(
+            notification_type,
+            payload,
+            repo
+        )
+
+        await handler.handle()
+
+
+
+
+
+
         if payload.get("message_type") == notification_schemas.NotificationTypeEnum.TYPE_PING:
             dto = notification_schemas.OzonPingNotificationDTO.model_validate(payload)
             return JSONResponse(
@@ -29,9 +48,9 @@ async def handle_ozon_webhook(
                     "time": dto.time.isoformat()
                 }
             )
-        
+
         elif payload.get("message_type") == notification_schemas.NotificationTypeEnum.TYPE_NEW_POSTING:
-            dto = notification_schemas.OrderCreatedNotificationDTO.model_validate(payload)  
+            dto = notification_schemas.OrderCreatedNotificationDTO.model_validate(payload)
             await create_order_with_items(session, dto)
 
         elif payload.get("message_type") == notification_schemas.NotificationTypeEnum.TYPE_STATE_CHANGED:
@@ -49,6 +68,5 @@ async def handle_ozon_webhook(
                 }
             },
         )
-    
-    return JSONResponse(status_code=200, content={"result": True})
 
+    return JSONResponse(status_code=200, content={"result": True})

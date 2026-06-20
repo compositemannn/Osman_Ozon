@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
 from pydantic import BaseModel, field_validator
 from decimal import Decimal
 
@@ -82,13 +81,13 @@ class OrderCreatedItemsDTO(BaseModel):
 class OrderCreatedNotificationDTO(OzonBaseWebhook):
     posting_number: str
     seller_id: int
-    products: List[OrderCreatedItemsDTO]
-    in_process_at: Optional[datetime] = None  # Из-за сноски Ozon: может быть пустым при поздней оплате
+    products: list[OrderCreatedItemsDTO]
+    in_process_at: datetime | None = None  # Из-за сноски Ozon: может быть пустым при поздней оплате
     warehouse_id: int
     shipment_date: datetime
     tpl_integration_type: str
     is_express: bool
-    tracking_number: Optional[str] = None
+    tracking_number: str | None = None
     delivery_date_begin: datetime
     delivery_date_end: datetime
 
@@ -105,8 +104,8 @@ class OrderUpdatedStatusNotificationDTO(OzonBaseWebhook):
         # Если дата пришла без таймзоны (naive), принудительно говорим, что это UTC
         if v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
-        
-        # Если дата пришла с другой таймзоной (например, +03:00), 
+
+        # Если дата пришла с другой таймзоной (например, +03:00),
         # она автоматически пересчитается в эквивалентное время UTC
         return v.astimezone(timezone.utc)
 
@@ -122,8 +121,8 @@ class StockProductItem(BaseModel):
     product_id: int
     sku: int
     updated_at: datetime
-    stocks: List[StockWarehouseItem]
+    stocks: list[StockWarehouseItem]
 
 class OrderStocksNotificationDTO(OzonBaseWebhook):
     seller_id: int
-    items: List[StockProductItem]
+    items: list[StockProductItem]

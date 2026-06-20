@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from sqlalchemy import BigInteger, Integer, Numeric, DateTime, ForeignKey, String
+from sqlalchemy import BigInteger, Integer, Numeric, DateTime, ForeignKey, String, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database.db import Base
+from app.database import Base
 
 
 class OrderItem(Base):
@@ -13,7 +13,7 @@ class OrderItem(Base):
         primary_key = True
     )
 
-    posting_number: Mapped[str] = mapped_column(
+    order_posting_number: Mapped[str] = mapped_column(
         String(50),
         ForeignKey("orders.posting_number"),
         index = True
@@ -57,6 +57,34 @@ class OrderItem(Base):
         nullable = True
     )
 
-    order: Mapped["Order"] = relationship(back_populates = "items")
+    commission_percent: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    customer_price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+    )
+
+    total_discount_percent: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+    )
+
+    total_discount_value: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+    )
+
+    is_returned_finished: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    order: Mapped["Order"] = relationship(
+        back_populates = "items",
+    )
 
     product: Mapped["Product"] = relationship()

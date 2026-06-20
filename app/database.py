@@ -1,13 +1,15 @@
-from sqlalchemy import DeclarativeBase
+from fastapi import Depends
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession,
     AsyncAttrs,
     async_sessionmaker
 )
-import logging 
+import logging
 from typing import AsyncIterator # Добавь импорт в самый верх файла
 from app.config import settings
+from app.repositories.order_repo import OrderRepository
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ async_session_maker = async_sessionmaker(
     autocommit = False,
     autoflush = False, # autoflush: НЕ автоматически flush перед SELECT запросами
 )
+
 
 async def get_db() -> AsyncIterator[AsyncSession]:
     """

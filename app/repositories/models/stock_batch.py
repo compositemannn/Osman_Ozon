@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy import BigInteger, Integer, Numeric, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database.db import Base
+from app.database import Base
 
 
 class StockBatch(Base):
@@ -38,4 +38,3 @@ class StockBatch(Base):
     )
 
     product: Mapped["Product"] = relationship(back_populates="batches")
-
