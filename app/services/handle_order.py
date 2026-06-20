@@ -1,7 +1,9 @@
 from typing import Any
 
+from app.repositories.models.order import Order
 from app.repositories.order_repo import OrderRepository
 from app.schemas.notification import NotificationTypeEnum, OrderCreatedNotificationDTO
+from app.schemas.order_validation import OrderValidation
 
 
 class NotificationHandler:
@@ -13,8 +15,9 @@ class NotificationHandler:
 
         self.notification_type: NotificationTypeEnum = notification_type
         self.repo: OrderRepository = repo
+        self.payload: dict[str, Any] = payload
 
-    async def handle(self):
+    async def notification_distribution(self):
         handlers = {
             NotificationTypeEnum.TYPE_NEW_POSTING: self._handle_order_created,
         }
@@ -29,5 +32,14 @@ class NotificationHandler:
 
         return await handler()
 
-    async def _handle_order_created(self):
-        pass
+
+    async def _get_parsed_order_from_market(self):
+        ...
+
+
+    async def __handle_order_created(self):
+        order_created_notification: OrderCreatedNotificationDTO = OrderValidation.validate_raw_notification_order_created(self.payload)
+
+        existing_order = self.repo.get_order_by_posting_number_or_none(order_created_notification.posting_number)
+        if existing_order:
+            return

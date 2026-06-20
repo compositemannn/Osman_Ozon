@@ -7,7 +7,7 @@ from datetime import timezone
 
 class OrderRepository:
     def __init__(self, session: AsyncSession):
-        self.session = session
+        self.session: AsyncSession = session
 
 
     async def get_order_by_posting_number_or_none(self, posting_number: str) -> Order | None:

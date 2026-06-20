@@ -3,13 +3,14 @@ from app.schemas.notification import OrderCreatedNotificationDTO, OrderUpdatedSt
 
 
 class OrderValidation:
-    def __init__(self, raw_notification_data: dict[str, Any]):
-        self.__raw_notification: dict[str, Any] = raw_notification_data
+    @staticmethod
+    def parse_raw_notification_order_created(raw_notification: dict[str, Any]):
+        return OrderCreatedNotificationDTO.model_validate(raw_notification)
 
-    @property
-    def validate_raw_notification_order_created(self):
-        return OrderCreatedNotificationDTO.model_validate(self.__raw_notification)
+    @staticmethod
+    def parse_raw_notification_order_status_updated(raw_notification: dict[str, Any]):
+        return OrderUpdatedStatusNotificationDTO.model_validate(raw_notification)
 
-    @property
-    def validate_raw_notification_order_status_updated(self):
-        return OrderUpdatedStatusNotificationDTO.model_validate(self.__raw_notification)
+    @staticmethod
+    def parse_order_from_market(posting_number: str):
+        return
