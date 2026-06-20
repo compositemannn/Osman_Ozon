@@ -4,6 +4,8 @@ from app.repositories.models.order_item import OrderItem
 from sqlalchemy import update, select, asc # asc - по возрастанию (первые - самые старые партии)
 from datetime import timezone
 
+from app.repositories.models.stock_batch import StockBatch
+
 
 class OrderRepository:
     def __init__(self, session: AsyncSession):
@@ -29,3 +31,14 @@ class OrderRepository:
         await self.session.flush()
 
         return order
+
+
+    async def get_stock_batch_by_sku(self, sku: int):
+        stmt = select(StockBatch
+                ).where(StockBatch.sku == sku, StockBatch.current_quantity > 0
+                ).order_by(asc(StockBatch.created_at)
+                )
+        result = await self.session.execute(stmt)
+        batches = result.scalars().all()
+
+        return batches
