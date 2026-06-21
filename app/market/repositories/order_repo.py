@@ -1,8 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.models.order import Order
 from app.repositories.models.order_item import OrderItem
-from sqlalchemy import update, select, asc # asc - по возрастанию (первые - самые старые партии)
-from datetime import timezone
+from sqlalchemy import select, asc # asc - по возрастанию (первые - самые старые партии)
 
 from app.repositories.models.stock_batch import StockBatch
 

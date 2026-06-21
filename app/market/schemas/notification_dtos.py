@@ -3,7 +3,6 @@ from enum import Enum
 from pydantic import BaseModel, field_validator
 from decimal import Decimal
 
-
 class NotificationTypeEnum(str, Enum):
     TYPE_PING = "TYPE_PING"
     TYPE_NEW_POSTING = "TYPE_NEW_POSTING"

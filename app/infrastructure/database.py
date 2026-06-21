@@ -1,4 +1,3 @@
-from fastapi import Depends
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -9,13 +8,15 @@ from sqlalchemy.ext.asyncio import (
 import logging
 from typing import AsyncIterator # Добавь импорт в самый верх файла
 from app.config import settings
-from app.repositories.order_repo import OrderRepository
+
 
 logger = logging.getLogger(__name__)
+
 
 class Base(AsyncAttrs, DeclarativeBase):
     """Base class for all ORM models."""
     pass
+
 
 engine = create_async_engine(
     settings.DATABASE_URL,
@@ -24,6 +25,7 @@ engine = create_async_engine(
     pool_size = 20,         # максимальное количество соединений в пуле
      max_overflow=10,     # Максимальное количество дополнительных соединений сверх pool_size
 )
+
 
 async_session_maker = async_sessionmaker(
     engine,
@@ -71,6 +73,7 @@ async def get_db() -> AsyncIterator[AsyncSession]:
             await session.rollback()
             # Откатываем все изменения в БД
             raise
+
 
 async def dispose_db():
     """

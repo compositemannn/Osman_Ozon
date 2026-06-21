@@ -1,9 +1,6 @@
-from statistics import quantiles
-from typing import Any
 from app.repositories.models.order import Order
 from app.repositories.models.order_item import OrderItem
-from app.schemas.notification import OrderCreatedNotificationDTO, OrderUpdatedStatusNotificationDTO
-from app.schemas.order_from_market import FinancialOrderDataDTO, ProductFinancialOrderDTO, ProductOrderDTO, ReceivedBusinessOrderDTO, ReceivedOrderDTO
+from app.schemas.order_from_market import ProductFinancialOrderDTO, ProductOrderDTO, ReceivedOrderDTO
 
 
 class OrderValidation:
@@ -27,19 +24,7 @@ class OrderValidation:
     def convert_order_to_model(order_dto: ReceivedOrderDTO):
         order = Order(
             posting_number=order_dto.posting_number,
-            status=order_dto.status,
+            status='posting_created',
             last_event_time=order_dto.in_process_at
         )
         return order
-
-    # @staticmethod
-    # def parse_raw_notification_order_created(raw_notification: dict[str, Any]):
-    #     return OrderCreatedNotificationDTO.model_validate(raw_notification)
-
-    # @staticmethod
-    # def parse_raw_notification_order_status_updated(raw_notification: dict[str, Any]):
-    #     return OrderUpdatedStatusNotificationDTO.model_validate(raw_notification)
-
-    # @staticmethod
-    # def parse_order_from_market(raw_information_about_order: str):
-    #     return ReceivedBusinessOrderDTO.model_validate(raw_information_about_order)
