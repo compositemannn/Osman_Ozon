@@ -23,7 +23,7 @@ class NotificationHandler:
         handlers = {
             NotificationTypeEnum.TYPE_NEW_POSTING: self._handle_order_created,
             NotificationTypeEnum.TYPE_STATE_CHANGED: self._handle_order_status_updated,
-            HandlerException.ORDER_IS_NOT_EXIST_IN_DB: self._handle_order_created
+            HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB: self._handle_order_created
         }
 
         handler = handlers.get(self.notification_type)
