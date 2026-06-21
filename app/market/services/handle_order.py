@@ -1,32 +1,31 @@
+from datetime import datetime
 from typing import Any
 
-from app.clients.request_to_market import get_order
-from app.repositories.order_repo import OrderRepository
-from app.schemas.notification_dtos import NotificationTypeEnum, OrderCreatedNotificationDTO, OrderUpdatedStatusNotificationDTO
-from app.schemas.market_dtos import ReceivedBusinessOrderDTO, ReceivedOrderDTO
-from app.schemas.transform import OrderValidation
-from app.schemas.response_dtos import HandlerResponse
+from ..clients.request_to_market import get_order
+from ..repositories.order_repo import OrderRepository
+from ..schemas.notification_dtos import NotificationTypeEnum, OrderCancelledNotificationDTO, OrderCreatedItemsDTO, OrderCreatedNotificationDTO, OrderUpdatedStatusNotificationDTO
+from ..schemas.market_dtos import ReceivedBusinessOrderDTO, ReceivedOrderDTO
+from ..schemas.transform import OrderValidation
+from ..schemas.response_dtos import HandlerResponse
 
 
 class NotificationHandler:
     def __init__(self,
-                notification_type: NotificationTypeEnum,
                 payload: dict[str, Any],
                 repo: OrderRepository
                 ):
-
-        self.notification_type: NotificationTypeEnum = notification_type
         self.repo: OrderRepository = repo
         self.payload: dict[str, Any] = payload
 
-    async def notification_distribution(self):
+
+    async def notification_distribution(self, notification_type):
         handlers = {
-            NotificationTypeEnum.TYPE_NEW_POSTING: self._handle_order_created,
-            NotificationTypeEnum.TYPE_STATE_CHANGED: self._handle_order_status_updated,
-            HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB: self._handle_order_created
+            NotificationTypeEnum.TYPE_NEW_POSTING: (self._handle_order_created, OrderCreatedNotificationDTO.model_validate(notification_type)),
+            NotificationTypeEnum.TYPE_STATE_CHANGED: (self._handle_order_status_updated, OrderUpdatedStatusNotificationDTO.model_validate(notification_type)),
+            HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB: (self._handle_order_created, OrderCreatedNotificationDTO.model_validate(notification_type))
         }
 
-        handler = handlers.get(self.notification_type)
+        handler = handlers.get(notification_type)
 
         if handler is None:
             raise ValueError(
@@ -37,15 +36,13 @@ class NotificationHandler:
         return await handler()
 
 
-    async def _handle_order_created(self):
-        order_created_notification = OrderCreatedNotificationDTO.model_validate(self.payload)
-
-        existing_order = self.repo.get_order_by_posting_number_or_none(order_created_notification.posting_number)
+    async def _handle_order_created(self, notification: OrderCreatedNotificationDTO):
+        existing_order = self.repo.get_order_by_posting_number_or_none(notification.posting_number)
 
         if existing_order:
             return
 
-        order_data: ReceivedOrderDTO = self._get_parsed_order_from_market(order_created_notification.posting_number)
+        order_data: ReceivedOrderDTO = self._get_parsed_order_from_market(notification.posting_number)
 
         order_model = OrderValidation.convert_order_to_model(order_data)
 
@@ -68,26 +65,53 @@ class NotificationHandler:
         return HandlerResponse.OK
 
 
-    async def _handle_order_status_updated(self):
-        order_updated_status_notification = OrderUpdatedStatusNotificationDTO.model_validate(self.payload)
-
-        existing_order = self.repo.get_order_by_posting_number_or_none(order_updated_status_notification.posting_number)
+    async def _handle_order_status_updated(self, notification: OrderUpdatedStatusNotificationDTO):
+        existing_order = self.repo.get_order_by_posting_number_or_none(notification.posting_number)
 
         if existing_order is None:
             return self.notification_distribution(HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB)
 
         last_event_time_from_db = existing_order.last_event_time
-        last_event_time_from_notification = order_updated_status_notification.changed_state_date
+        last_event_time_from_notification = notification.changed_state_date
 
         if last_event_time_from_notification < last_event_time_from_db:
             return
 
-        existing_order.status = order_updated_status_notification.new_state
+        existing_order.status = notification.new_state
 
         await self.repo.session.commit()
 
         return HandlerResponse.OK
 
+
+    async def _handle_order_item_cancelled(self, notification: OrderCancelledNotificationDTO):
+        existing_order = await self.repo.get_order_by_posting_number_or_none(notification.posting_number)
+
+        if existing_order is None:
+            return self.notification_distribution(HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB)
+
+        for item in notification.products:
+            qty_to_detuct = item.quantity
+
+            total_qty = await self.repo.get_order_item_total_quantit(notification.posting_number, item.sku)
+
+            item_from_db = await self.repo.get_order_item_by_sku(notification.posting_number, item.sku)
+
+            qty_from_stock_batch = await self.repo.get_stock_batch_by_sku_purchase_price(item.sku, item_from_db.purchase_price)
+
+            if total_qty >= qty_to_detuct:
+
+                while qty_to_detuct > item_from_db.quantity:
+
+                    qty_to_detuct -= item_from_db.quantity
+                    item_from_db.quantity = 0
+                    item_from_db = await self.repo.get_order_item_by_sku(notification.posting_number, item.sku)
+
+                item_from_db.quantity -= qty_to_detuct
+
+        await self.repo.session.commit()
+
+        return HandlerResponse.OK
 
 
     @staticmethod

@@ -55,6 +55,21 @@ STATUS_LABELS: dict[OrderUpdatedStatusEnum, str] = {
 }
 
 
+class OrderCancelledItemsDTO(BaseModel):
+    sku: int
+    quantity: int
+
+
+class OrderCancelledNotificationDTO(BaseModel):
+    message_type: NotificationTypeEnum
+    posting_number: str     # Номер отправления.
+    seller_id: int
+    products: list[OrderCancelledItemsDTO]
+    old_state: str
+    new_state: str
+    changed_state_date: datetime
+
+
 # --- БАЗОВАЯ МОДЕЛЬ (Только общее для всех поле) ---
 
 class OzonBaseWebhook(BaseModel):
