@@ -1,11 +1,10 @@
 import httpx
 
-from ..config import settings
+from app.infrastructure.config import settings
 
 
 async def get_order(
-    posting_number: str,
-    url: str = "https://api-seller.ozon.ru/v3/posting/fbs/get"
+    posting_number: str, url: str = "https://api-seller.ozon.ru/v3/posting/fbs/get"
 ):
     body = {"posting_number": posting_number, "with": {"financial_data": True}}
 

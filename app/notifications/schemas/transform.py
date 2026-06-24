@@ -1,11 +1,21 @@
-from app.repositories.models.order import Order
-from app.repositories.models.order_item import OrderItem
-from app.schemas.order_from_market import ProductFinancialOrderDTO, ProductOrderDTO, ReceivedOrderDTO
+from infrastructure.models.order import Order
+from infrastructure.models.order_item import OrderItem
+
+from .market_dtos import (
+    ProductFinancialOrderDTO,
+    ProductOrderDTO,
+    ReceivedOrderDTO,
+)
 
 
 class OrderValidation:
     @staticmethod
-    async def convert_item_to_model(item_dto: ProductOrderDTO,  financial_data_dto: ProductFinancialOrderDTO, allocated_qty: int, purchase_price):
+    async def convert_item_to_model(
+        item_dto: ProductOrderDTO,
+        financial_data_dto: ProductFinancialOrderDTO,
+        allocated_qty: int,
+        purchase_price,
+    ):
         order_item = OrderItem(
             sku=item_dto.sku,
             quantity=allocated_qty,
@@ -24,7 +34,7 @@ class OrderValidation:
     def convert_order_to_model(order_dto: ReceivedOrderDTO):
         order = Order(
             posting_number=order_dto.posting_number,
-            status='posting_created',
-            last_event_time=order_dto.in_process_at
+            status="заказ создан",
+            last_event_time=order_dto.in_process_at,
         )
         return order

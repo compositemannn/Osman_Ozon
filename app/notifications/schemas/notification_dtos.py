@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
-from enum import Enum
-from pydantic import BaseModel, field_validator
 from decimal import Decimal
+from enum import Enum
+
+from pydantic import BaseModel, field_validator
+
 
 class NotificationTypeEnum(str, Enum):
     TYPE_PING = "TYPE_PING"
@@ -51,7 +53,7 @@ STATUS_LABELS: dict[OrderUpdatedStatusEnum, str] = {
     OrderUpdatedStatusEnum.posting_delivered: "Доставлено",
     OrderUpdatedStatusEnum.posting_received: "Получено",
     OrderUpdatedStatusEnum.posting_canceled: "Отменено",
-    OrderUpdatedStatusEnum.posting_not_in_sort_center: "Не принято на сортировочном центре"
+    OrderUpdatedStatusEnum.posting_not_in_sort_center: "Не принято на сортировочном центре",
 }
 
 
@@ -62,7 +64,7 @@ class OrderCancelledItemsDTO(BaseModel):
 
 class OrderCancelledNotificationDTO(BaseModel):
     message_type: NotificationTypeEnum
-    posting_number: str     # Номер отправления.
+    posting_number: str  # Номер отправления.
     seller_id: int
     products: list[OrderCancelledItemsDTO]
     old_state: str
@@ -72,10 +74,9 @@ class OrderCancelledNotificationDTO(BaseModel):
 
 # --- БАЗОВАЯ МОДЕЛЬ (Только общее для всех поле) ---
 
+
 class OzonBaseWebhook(BaseModel):
     message_type: NotificationTypeEnum
-
-
 
 
 # Схема для TYPE_PING
@@ -92,11 +93,14 @@ class OrderCreatedItemsDTO(BaseModel):
     payout: Decimal
     commission_amount: Decimal
 
+
 class OrderCreatedNotificationDTO(OzonBaseWebhook):
     posting_number: str
     seller_id: int
     products: list[OrderCreatedItemsDTO]
-    in_process_at: datetime | None = None  # Из-за сноски Ozon: может быть пустым при поздней оплате
+    in_process_at: datetime | None = (
+        None  # Из-за сноски Ozon: может быть пустым при поздней оплате
+    )
     warehouse_id: int
     shipment_date: datetime
     tpl_integration_type: str
@@ -112,6 +116,7 @@ class OrderUpdatedStatusNotificationDTO(OzonBaseWebhook):
     new_state: OrderUpdatedStatusEnum
     changed_state_date: datetime
     seller_id: int
+
     @field_validator("changed_state_date", mode="after")
     @classmethod
     def ensure_utc(cls, v: datetime) -> datetime:
@@ -124,18 +129,19 @@ class OrderUpdatedStatusNotificationDTO(OzonBaseWebhook):
         return v.astimezone(timezone.utc)
 
 
-
 # Схемы для TYPE_STOCKS_CHANGED (По вложенности)
 class StockWarehouseItem(BaseModel):
     warehouse_id: int
     present: int
     reserved: int
 
+
 class StockProductItem(BaseModel):
     product_id: int
     sku: int
     updated_at: datetime
     stocks: list[StockWarehouseItem]
+
 
 class OrderStocksNotificationDTO(OzonBaseWebhook):
     seller_id: int

@@ -1,38 +1,40 @@
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    AsyncSession,
-    AsyncAttrs,
-    async_sessionmaker
-)
 import logging
-from typing import AsyncIterator # Добавь импорт в самый верх файла
-from app.config import settings
+from typing import AsyncIterator  # Добавь импорт в самый верх файла
 
+from sqlalchemy.ext.asyncio import (
+    AsyncAttrs,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
 
 class Base(AsyncAttrs, DeclarativeBase):
     """Base class for all ORM models."""
+
     pass
 
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo = True,            # логируем запрос в режиме отладки
-    pool_pre_ping = True,   # проверяем соединение перед использованием
-    pool_size = 20,         # максимальное количество соединений в пуле
-     max_overflow=10,     # Максимальное количество дополнительных соединений сверх pool_size
+    echo=True,  # логируем запрос в режиме отладки
+    pool_pre_ping=True,  # проверяем соединение перед использованием
+    pool_size=20,  # максимальное количество соединений в пуле
+    max_overflow=10,  # Максимальное количество дополнительных соединений сверх pool_size
 )
 
 
 async_session_maker = async_sessionmaker(
     engine,
-    expire_on_commit = False,
-    class_ = AsyncSession,
-    autocommit = False,
-    autoflush = False, # autoflush: НЕ автоматически flush перед SELECT запросами
+    expire_on_commit=False,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,  # autoflush: НЕ автоматически flush перед SELECT запросами
 )
 
 

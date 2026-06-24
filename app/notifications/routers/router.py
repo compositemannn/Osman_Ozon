@@ -1,38 +1,27 @@
-from fastapi import APIRouter, Depends, Body, status
-from fastapi.responses import JSONResponse
-from app.repositories.dependencies import get_repo_obj
-from app.repositories.order_repo import OrderRepository
-from app.schemas.notification import NotificationTypeEnum
-from pydantic import ValidationError
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_db
-from app.crud.orderdb import create_order_with_items, update_order_status
 from typing import Any
 
-from app.services.handle_order import NotificationHandler
+from fastapi import APIRouter, Body, Depends, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
+from ..repositories.dependencies import get_repo_obj
+from ..repositories.order_repo import OrderRepository
+from ..schemas.notification_dtos import NotificationTypeEnum
+from ..services.handle_order import NotificationHandler
 
-router = APIRouter(
-    prefix="/webhook",
-    tags=["webhook"]
-)
+router = APIRouter(prefix="/webhook", tags=["webhook"])
+
 
 @router.post("/notification")
 async def handle_ozon_webhook(
-    payload: dict[str, Any] = Body(...),
-    repo: OrderRepository = Depends(get_repo_obj)
+    payload: dict[str, Any] = Body(...), repo: OrderRepository = Depends(get_repo_obj)
 ):
 
     try:
-        notification_type: NotificationTypeEnum = payload.get("message_type")
-        handler = NotificationHandler(
-            notification_type=notification_type,
-            payload=payload,
-            repo=repo
-        )
+        notification_type: NotificationTypeEnum = payload.get("message_type")  # pyright: ignore[reportAssignmentType]
+        handler = NotificationHandler(payload=payload, repo=repo)
 
-        await handler.notification_distribution()
-
+        await handler.notification_distribution(notification_type=notification_type)
 
         # if payload.get("message_type") == notification_schemas.NotificationTypeEnum.TYPE_PING:
         #     dto = notification_schemas.OzonPingNotificationDTO.model_validate(payload)
