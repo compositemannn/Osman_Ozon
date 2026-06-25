@@ -13,7 +13,7 @@ class AuditDay(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     initial_cash: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2), nullable=False, default=0
+        Integer, nullable=False, default=0
     )
 
     actions: Mapped[list["AuditAction"]] = relationship(  # noqa: F821  # pyright: ignore[reportUndefinedVariable]
