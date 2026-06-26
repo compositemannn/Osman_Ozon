@@ -5,16 +5,15 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from ..repositories.dependencies import get_repo_obj
-from ..repositories.order_repo import OrderRepository
 from ..schemas.notification_dtos import NotificationTypeEnum
-from ..services.handle_order import NotificationHandler
+from ..services.handle_notifications import NotificationHandler
 
-router = APIRouter(prefix="/webhook", tags=["webhook"])
+router = APIRouter(tags=["webhook"])
 
 
 @router.post("/notification")
 async def handle_ozon_webhook(
-    payload: dict[str, Any] = Body(...), repo: OrderRepository = Depends(get_repo_obj)
+    payload: dict[str, Any] = Body(...), repo=Depends(get_repo_obj)
 ):
 
     try:

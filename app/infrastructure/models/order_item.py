@@ -17,7 +17,7 @@ class OrderItem(Base):
 
     name: Mapped[str] = mapped_column(String, nullable=False)
 
-    sku: Mapped[int] = mapped_column(BigInteger, ForeignKey("products.sku"), index=True)
+    sku: Mapped[int] = mapped_column(BigInteger, index=True)
 
     quantity: Mapped[int] = mapped_column(Integer)
 
@@ -31,10 +31,6 @@ class OrderItem(Base):
 
     # Чистая выплата на наш счет за товар (price - commission_amount)
     expected_payout: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-
-    purchase_price: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2), nullable=True
-    )
 
     commission_percent: Mapped[int] = mapped_column(
         Integer,

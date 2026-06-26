@@ -3,7 +3,6 @@ from typing import Any
 from infrastructure.models.order_item import OrderItem
 
 from ..clients.request_to_market import get_order
-from ..repositories.order_repo import OrderRepository
 from ..schemas.market_dtos import ReceivedBusinessOrderDTO, ReceivedOrderDTO
 from ..schemas.notification_dtos import (
     STATUS_LABELS,
@@ -17,8 +16,8 @@ from ..schemas.transform import OrderValidation
 
 
 class NotificationHandler:
-    def __init__(self, payload: dict[str, Any], repo: OrderRepository):
-        self.repo: OrderRepository = repo
+    def __init__(self, payload: dict[str, Any], repo):
+        self.repo = repo
         self.payload: dict[str, Any] = payload
 
     async def notification_distribution(self, notification_type):

@@ -8,7 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class OrderRepository:
+class NotificationsRepository:
     def __init__(self, session: AsyncSession):
         self.session: AsyncSession = session
 
