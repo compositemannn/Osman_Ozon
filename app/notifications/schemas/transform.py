@@ -11,22 +11,20 @@ from .market_dtos import (
 class OrderValidation:
     @staticmethod
     async def convert_item_to_model(
-        item_dto: ProductOrderDTO,
-        financial_data_dto: ProductFinancialOrderDTO,
-        allocated_qty: int,
-        purchase_price,
+        item_dto: ProductOrderDTO, financial_data_dto: ProductFinancialOrderDTO
     ):
         order_item = OrderItem(
+            name=item_dto.name,
             sku=item_dto.sku,
-            quantity=allocated_qty,
+            quantity=item_dto.quantity,
             price=financial_data_dto.price,
             commission_amount=financial_data_dto.commission_amount,
-            payout=financial_data_dto.payout,
-            purchase_price=purchase_price,
+            expected_payout=financial_data_dto.payout,
             commission_percent=financial_data_dto.commission_percent,
             customer_price=financial_data_dto.customer_price,
-            total_discount_percent=financial_data_dto.total_discount_percent,
-            total_discount_value=financial_data_dto.total_discount_value,
+            old_price=financial_data_dto.old_price,
+            discount_value_from_seller=financial_data_dto.discount_value_from_seller,
+            discount_percent_from_seller=financial_data_dto.discount_percent_from_seller,
         )
         return order_item
 

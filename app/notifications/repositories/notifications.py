@@ -29,8 +29,8 @@ class NotificationsRepository:
         self, posting_number: str
     ) -> Order | None:
         stmt = select(Order).where(Order.posting_number == posting_number)
-        result = await self.session.execute(stmt)
 
+        result = await self.session.execute(stmt)
         existing_order = result.scalar_one_or_none()
 
         return existing_order

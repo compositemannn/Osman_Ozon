@@ -42,8 +42,13 @@ class OrderItem(Base):
         nullable=False,
     )
 
-    discount_percent_from_seller: Mapped[Decimal] = mapped_column(
+    old_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
+        nullable=False,
+    )
+
+    discount_percent_from_seller: Mapped[int] = mapped_column(
+        Integer,
         nullable=False,
     )
 

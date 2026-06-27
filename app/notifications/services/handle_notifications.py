@@ -62,18 +62,10 @@ class NotificationHandler:
             for item, item_financial_data in zip(
                 order_data.products, order_data.financial_data.products
             ):
-                qty_to_deduct = item.quantity
-                batches = await self.repo.get_stock_batch_by_sku(item.sku)
-
-                for batch in batches:
-                    allocated_qty = min(batch.current_quantity, qty_to_deduct)
-                    batch.current_quantity -= allocated_qty
-                    qty_to_deduct -= allocated_qty
-
-                    order_item_model = await OrderValidation.convert_item_to_model(
-                        item, item_financial_data, allocated_qty, batch.purchase_price
-                    )
-                    order_item_models.append(order_item_model)
+                order_item_model = await OrderValidation.convert_item_to_model(
+                    item, item_financial_data
+                )
+                order_item_models.append(order_item_model)
 
             await self.repo.create_order_with_items(order_model, order_item_models)
 

@@ -1,19 +1,36 @@
 from datetime import datetime
+from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from .notification_dtos import OrderUpdatedStatusEnum
 
 
 class ProductFinancialOrderDTO(BaseModel):
-    commission_amount: float  # Размер комиссии за товар.
+    commission_amount: Decimal  # Размер комиссии за товар.
     commission_percent: int  # Процент комиссии.
-    payout: float  # Выплата продавцу.
-    price: float  # Цена товара с учётом акций, кроме акций за счёт Ozon.
-    customer_price: float  # Цена товара для покупателя с учётом скидок продавца и Ozon.
-    total_discount_percent: float  # Процент скидки.
-    total_discount_value: float  # Сумма скидки.
+    payout: Decimal  # Выплата продавцу.
+    price: Decimal  # Цена товара с учётом акций, кроме акций за счёт Ozon.
+    old_price: Decimal
+    customer_price: (
+        Decimal  # Цена товара для покупателя с учётом скидок продавца и Ozon.
+    )
     product_id: int
+    discount_value_from_seller: Decimal | None = None
+    discount_percent_from_seller: int | None = None
+
+    @model_validator(mode="after")
+    def calculate_discounts(self):
+        self.discount_value_from_seller = self.old_price - self.price
+
+        if self.old_price == 0:
+            self.discount_percent_from_seller = 0
+        else:
+            self.discount_percent_from_seller = int(
+                (self.discount_value_from_seller / self.old_price) * 100
+            )
+
+        return self
 
 
 class FinancialOrderDataDTO(BaseModel):
