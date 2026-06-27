@@ -47,6 +47,7 @@ class AuditRepository:
             setattr(action, key, value)
         
         await self.session.commit()
+        await self.session.refresh(action)
 
         return action
 

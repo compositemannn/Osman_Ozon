@@ -32,3 +32,7 @@ class AuditActionResponse(BaseModel):
     money: int
     audit_day_id: int
     created_at: datetime
+
+class DeleteResponseDTO(BaseModel):
+    status: str = "success"
+    message: str = "Запись успешно удалена"
