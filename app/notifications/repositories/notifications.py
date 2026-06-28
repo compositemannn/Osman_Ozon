@@ -38,15 +38,8 @@ class NotificationsRepository:
     async def get_order_item_by_sku(
         self, posting_number: str, sku: int
     ) -> OrderItem | None:
-        stmt = (
-            select(OrderItem)
-            .where(
-                OrderItem.order_posting_number == posting_number,
-                OrderItem.sku == sku,
-                OrderItem.quantity > 0,
-            )
-            .order_by(OrderItem.purchase_price)
-            .limit(1)
+        stmt = select(OrderItem).where(
+            OrderItem.order_posting_number == posting_number, OrderItem.sku == sku
         )
 
         result = await self.session.execute(stmt)

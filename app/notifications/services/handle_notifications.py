@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any
 
 from infrastructure.models.order_item import OrderItem
@@ -56,7 +57,7 @@ class NotificationHandler:
         )
 
         if order_data is not None:
-            order_model = OrderValidation.convert_order_to_model(order_data)
+            order_expected_payout = Decimal(0)
             order_item_models: list[OrderItem] = []
 
             for item, item_financial_data in zip(
@@ -66,6 +67,11 @@ class NotificationHandler:
                     item, item_financial_data
                 )
                 order_item_models.append(order_item_model)
+                order_expected_payout += item_financial_data.payout
+
+            order_model = OrderValidation.convert_order_to_model(
+                order_data, order_expected_payout
+            )
 
             await self.repo.create_order_with_items(order_model, order_item_models)
 
@@ -110,38 +116,12 @@ class NotificationHandler:
             )
 
         for item in notification.products:
-            qty_to_detuct = item.quantity
+            item_from_db = self.repo.get_order_item_by_sku(item.sku)
+            if item_from_db.quantity < item.quantity:
+                return
 
-            total_qty = await self.repo.get_order_item_total_quantity(
-                notification.posting_number, item.sku
-            )
-
-            item_from_db: OrderItem | None = await self.repo.get_order_item_by_sku(
-                notification.posting_number, item.sku
-            )
-
-            if total_qty is not None:
-                # qty_from_stock_batch = (
-                #     await self.repo.get_stock_batch_by_sku_purchase_price(
-                #         item.sku, item_from_db.purchase_price
-                #     )
-                # )
-
-                while (
-                    item_from_db is not None and qty_to_detuct > item_from_db.quantity
-                ):
-                    qty_to_detuct -= item_from_db.quantity
-                    item_from_db.quantity = 0
-
-                    item_from_db = await self.repo.get_order_item_by_sku(
-                        notification.posting_number,
-                        item.sku,
-                    )
-
-                if item_from_db is None:
-                    continue
-
-                item_from_db.quantity -= qty_to_detuct
+            item_from_db.quantity -= item.quantity
+            item_from_db.quantity_cancelled += item.quantity
 
         await self.repo.session.commit()
 

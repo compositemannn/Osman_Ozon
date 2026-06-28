@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from infrastructure.models.order import Order
 from infrastructure.models.order_item import OrderItem
 
@@ -29,10 +31,11 @@ class OrderValidation:
         return order_item
 
     @staticmethod
-    def convert_order_to_model(order_dto: ReceivedOrderDTO):
+    def convert_order_to_model(order_dto: ReceivedOrderDTO, expected_payout: Decimal):
         order = Order(
             posting_number=order_dto.posting_number,
             status="заказ создан",
             last_event_time=order_dto.in_process_at,
+            expected_payout=expected_payout,
         )
         return order
