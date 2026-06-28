@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer
+from sqlalchemy import DateTime, Integer, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -12,7 +12,9 @@ class AuditDay(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    initial_cash: Mapped[Decimal] = mapped_column(Integer, nullable=False, default=0)
+    initial_cash: Mapped[Decimal] = mapped_column(
+        Integer, nullable=False, default=0
+    )
 
     actions: Mapped[list["AuditAction"]] = relationship(  # noqa: F821  # pyright: ignore[reportUndefinedVariable]
         back_populates="audit_day",

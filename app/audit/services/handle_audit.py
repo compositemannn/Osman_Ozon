@@ -1,17 +1,14 @@
-from datetime import date
+from app.audit.repositories.audit_repo import AuditRepository
 from typing import Any
-
+from datetime import date
+from app.infrastructure.models.audit import AuditDay
 from fastapi import HTTPException, status
 
-from app.audit.repositories.audit_repo import AuditRepository
-from app.infrastructure.models.audit import AuditDay
-
-
 class AuditHandler:
-    def __init__(self, repo: AuditRepository, payload: dict[str, Any] | None = None):
+    def __init__(self, repo: AuditRepository, payload: dict[str, Any] = None):
         self.repo = repo
         self.payload = payload
-
+    
     async def get_or_create_day(self, target_date: date):
         if target_date > date.today():
             # Для будущего дня касса пустая, редактировать нельзя
@@ -28,12 +25,12 @@ class AuditHandler:
         day.final_cash = total_cash
         day.is_editable = True  # Разрешаем редактировать текущий/прошлые дни
         return day
-
+    
     async def create_action(self):
         if self.payload is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Тело запроса (payload) не может быть пустым",
+                detail="Тело запроса (payload) не может быть пустым"
             )
         action = await self.repo.create_action(self.payload)
         return action
@@ -42,13 +39,13 @@ class AuditHandler:
         if self.payload is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Тело запроса (payload) не может быть пустым",
+                detail="Тело запроса (payload) не может быть пустым"
             )
         action = await self.repo.update_action(id, self.payload)
         if action is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Запись для обновления не найдена",
+                detail="Запись для обновления не найдена"
             )
         return action
 
@@ -57,6 +54,6 @@ class AuditHandler:
         if flag is False:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Запись для удаления не найдена",
+                detail="Запись для удаления не найдена"
             )
         return {"status": "success", "message": "Запись успешно удалена"}
