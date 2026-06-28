@@ -1,11 +1,12 @@
-from infrastructure.models.order import Order
-from infrastructure.models.order_item import OrderItem
-from infrastructure.models.stock_item import StockItem
 from sqlalchemy import (
     func,
     select,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.infrastructure.models.order import Order
+from app.infrastructure.models.order_item import OrderItem
+from app.infrastructure.models.stock_item import StockItem
 
 
 class NotificationsRepository:

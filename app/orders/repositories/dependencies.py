@@ -1,6 +1,7 @@
 from fastapi import Depends
-from infrastructure.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.infrastructure.database import get_db
 
 from .current_orders import CurrentOrdersRepository
 

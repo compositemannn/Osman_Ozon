@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-from infrastructure.models.order import Order
-from infrastructure.models.order_item import OrderItem
+from app.infrastructure.models.order import Order
+from app.infrastructure.models.order_item import OrderItem
 
 from .market_dtos import (
     ProductFinancialOrderDTO,

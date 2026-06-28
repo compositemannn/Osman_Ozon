@@ -1,9 +1,9 @@
 from decimal import Decimal
 from typing import Any
 
-from infrastructure.models.order_item import OrderItem
+from app.infrastructure.models.order_item import OrderItem
 
-from ..clients.request_to_market import get_order
+from ..clients.request_to_market import get_order_by_posting_number
 from ..schemas.market_dtos import ReceivedBusinessOrderDTO, ReceivedOrderDTO
 from ..schemas.notification_dtos import (
     STATUS_LABELS,
@@ -22,27 +22,20 @@ class NotificationHandler:
         self.payload: dict[str, Any] = payload
 
     async def notification_distribution(self, notification_type):
-        handlers = {
-            NotificationTypeEnum.TYPE_NEW_POSTING: (
-                self._handle_order_created,
-                OrderCreatedNotificationDTO.model_validate(notification_type),
-            ),
-            NotificationTypeEnum.TYPE_STATE_CHANGED: (
-                self._handle_order_status_updated,
-                OrderUpdatedStatusNotificationDTO.model_validate(notification_type),
-            ),
-            HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB: (
-                self._handle_order_created,
-                OrderCreatedNotificationDTO.model_validate(notification_type),
-            ),
-        }
+        if notification_type == NotificationTypeEnum.TYPE_NEW_POSTING:
+            dto = OrderCreatedNotificationDTO.model_validate(self.payload)
+            return await self._handle_order_created(dto)
 
-        handler = handlers.get(notification_type)
+        elif notification_type == NotificationTypeEnum.TYPE_STATE_CHANGED:
+            dto = OrderUpdatedStatusNotificationDTO.model_validate(self.payload)
+            return await self._handle_order_status_updated(dto)
 
-        if handler is None:
-            raise ValueError("Unsupported notification type: " + f"{notification_type}")
+        elif notification_type == HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB:
+            dto = OrderCreatedNotificationDTO.model_validate(self.payload)
+            return await self._handle_order_created(dto)
 
-        return await handler()
+        else:
+            raise ValueError(f"Unsupported notification type: {notification_type}")
 
     async def _handle_order_created(self, notification: OrderCreatedNotificationDTO):
         existing_order = await self.repo.get_order_by_posting_number_or_none(
@@ -129,7 +122,7 @@ class NotificationHandler:
 
     @staticmethod
     async def _get_parsed_order_from_market(posting_number: str):
-        raw_order_from_market = await get_order(posting_number)
+        raw_order_from_market = get_order_by_posting_number(posting_number)
         order_from_market = ReceivedBusinessOrderDTO.model_validate(
             raw_order_from_market
         )
