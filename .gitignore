@@ -1,3 +1,9 @@
 app/database/models/__init__.py
 pyrightconfig.json
 .env
+# Кэш Python
+__pycache__/
+*.pyc
+
+# Локальная база данных SQLite
+test.db

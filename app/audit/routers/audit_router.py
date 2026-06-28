@@ -1,5 +1,8 @@
 from datetime import date
+from typing import Any
+
 from fastapi import APIRouter, Body, Depends, status
+
 import app.audit.schemas.AuditActionDTOs as AuditActionDTOs_schemas
 import app.audit.schemas.AuditDayDTO as AuditDayDTO_schemas
 from app.audit.repositories.audit_repo import AuditRepository
@@ -15,8 +18,8 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 async def get(
     date: date, repo: AuditRepository = Depends(get_repo_obj)
 ) -> AuditDayFullResponse:
-    service = AuditHandler(repo=repo)
-    return await service.get_or_create_day(date)
+    handler = AuditHandler(repo=repo)
+    return await handler.get_or_create_day(date)
 
 
 @router.post("/action", response_model=AuditActionResponse)
@@ -24,21 +27,21 @@ async def create(
     payload: AuditActionDTOs_schemas.AuditActionCreate,
     repo: AuditRepository = Depends(get_repo_obj),
 ) -> AuditActionResponse:
-    service = AuditHandler(repo=repo, payload=payload.model_dump())
-    return await service.create_action()
+    handler = AuditHandler(repo=repo, payload=payload.model_dump())
+    return await handler.create_action()
 
 
 @router.patch("/action/{id}", response_model=AuditActionResponse)
 async def update(
-    id: id,
+    audit_id: int,
     payload: AuditActionDTOs_schemas.AuditActionUpdate,
     repo: AuditRepository = Depends(get_repo_obj),
 ) -> AuditActionResponse:
-    service = AuditHandler(repo=repo, payload=payload.model_dump(exclude_unset=True))
-    return await service.update_action(id)
+    handler = AuditHandler(repo=repo, payload=payload.model_dump(exclude_unset=True))
+    return await handler.update_action(audit_id)
 
 
 @router.delete("/action/{id}", response_model=DeleteResponseDTO)
-async def delete(id: id, repo: AuditRepository = Depends(get_repo_obj)):
-    service = AuditHandler(repo=repo)
-    return await service.delete_action(id)
+async def delete(audit_id: int, repo: AuditRepository = Depends(get_repo_obj)):
+    handler = AuditHandler(repo=repo)
+    return await handler.delete_action(audit_id)
