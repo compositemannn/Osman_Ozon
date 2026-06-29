@@ -32,6 +32,15 @@ class Order(Base):
         Numeric(10, 2), nullable=False
     )
 
+    payout: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=False
+    )
+
+    payout_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+
     # Дата изменения статуса. При создании ставим текущее время UTC,
     # а при любом изменении строки (onupdate) база сама обновит время на актуальное.
     updated_at: Mapped[datetime] = mapped_column(
