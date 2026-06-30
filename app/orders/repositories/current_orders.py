@@ -1,9 +1,10 @@
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.models.order import Order
+from app.infrastructure.models.order_item import OrderItem
 
 
 class CurrentOrdersRepository:
@@ -11,7 +12,7 @@ class CurrentOrdersRepository:
         self.session = session
 
     async def get_orders_by_day(self, day: date):
-        stmt = select(Order.items).where(Order.created_at.date == day)
+        stmt = select(OrderItem).join(Order).where(func.date(Order.created_at) == day)
 
         result = await self.session.execute(stmt)
         orders_items = result.scalars().all()

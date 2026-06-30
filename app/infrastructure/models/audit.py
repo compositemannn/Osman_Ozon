@@ -1,7 +1,7 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Date, DateTime, Integer
+from sqlalchemy import Boolean, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -18,8 +18,6 @@ class AuditDay(Base):
         back_populates="audit_day",
         cascade="all, delete-orphan",
     )
-
-    creation_date: Mapped[date] = mapped_column(Date, nullable=False)
 
     final_cash: Mapped[Decimal] = mapped_column(Integer, default=0)
 

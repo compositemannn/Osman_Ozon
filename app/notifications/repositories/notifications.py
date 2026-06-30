@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.models.order import Order
 from app.infrastructure.models.order_item import OrderItem
-from app.infrastructure.models.stock_item import StockItem
 
 
 class NotificationsRepository:
@@ -58,27 +57,3 @@ class NotificationsRepository:
         await self.session.flush()
 
         return order
-
-    async def get_stock_batch_by_sku_purchase_price(self, sku: int, purchase_price):
-        stmt = (
-            select(StockItem.quantity)
-            .where(StockItem.sku == sku)
-            .order_by(StockItem.purchase_price)
-            .limit(1)
-        )
-
-        result = await self.session.execute(stmt)
-        batches = result.scalars().all()
-
-        return batches
-
-    async def get_stock_batch_by_sku(self, sku: int):
-        stmt = (
-            select(StockItem)
-            .where(StockItem.sku == sku, StockItem.current_quantity > 0)
-            .order_by(StockItem.created_at)
-        )
-        result = await self.session.execute(stmt)
-        batches = result.scalars().all()
-
-        return batches

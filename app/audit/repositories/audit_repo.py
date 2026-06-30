@@ -18,7 +18,7 @@ class AuditRepository:
     async def get_day(self, target_date: date):
         stmt = (
             select(AuditDay)
-            .where(AuditDay.creation_date == target_date)
+            .where(AuditDay.created_at == target_date)
             .options(selectinload(AuditDay.actions))
         )
         result = await self.session.execute(stmt)

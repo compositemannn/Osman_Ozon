@@ -1,3 +1,4 @@
+from datetime import timezone
 from decimal import Decimal
 from typing import Any
 
@@ -84,7 +85,11 @@ class NotificationHandler:
                 HandlerResponse.ORDER_IS_NOT_EXIST_IN_DB
             )
 
-        last_event_time_from_db = existing_order.last_event_time
+        last_event_time_from_db = (
+            existing_order.last_event_time.replace(  # Убрать в проде
+                tzinfo=timezone.utc
+            )
+        )
         last_event_time_from_notification = notification.changed_state_date
 
         if last_event_time_from_notification < last_event_time_from_db:

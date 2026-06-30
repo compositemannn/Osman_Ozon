@@ -119,13 +119,11 @@ class OrderUpdatedStatusNotificationDTO(OzonBaseWebhook):
 
     @field_validator("changed_state_date", mode="after")
     @classmethod
-    def ensure_utc(cls, v: datetime) -> datetime:
-        # Если дата пришла без таймзоны (naive), принудительно говорим, что это UTC
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        # Если таймзона не указана (naive), принудительно выставляем UTC
         if v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
-
-        # Если дата пришла с другой таймзоной (например, +03:00),
-        # она автоматически пересчитается в эквивалентное время UTC
+        # Если таймзона есть (aware), приводим её к UTC для единообразия
         return v.astimezone(timezone.utc)
 
 

@@ -1,3 +1,4 @@
+from datetime import timezone
 from decimal import Decimal
 
 from app.infrastructure.models.order import Order
@@ -35,7 +36,7 @@ class OrderValidation:
         order = Order(
             posting_number=order_dto.posting_number,
             status="заказ создан",
-            last_event_time=order_dto.in_process_at,
+            last_event_time=order_dto.in_process_at.astimezone(timezone.utc),
             expected_payout=expected_payout,
         )
         return order

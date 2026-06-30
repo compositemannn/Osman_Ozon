@@ -9,5 +9,5 @@ class CurrentOrdersHandler:
 
     async def handle_get_orders_by_day(self, day: date):
         orders_from_db = await self.repo.get_orders_by_day(day)
-        orders = OrdersDayResponseSchema.model_validate(orders_from_db)
+        orders = OrdersDayResponseSchema.model_validate({"items": orders_from_db})
         return orders

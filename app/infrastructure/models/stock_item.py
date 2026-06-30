@@ -25,7 +25,7 @@ class StockItem(Base):
     name: Mapped[str] = mapped_column(String)
 
     order: Mapped["Order"] = relationship(  # noqa: F821  # pyright: ignore[reportUndefinedVariable]
-        back_populates="items",
+        back_populates="stock_items",
     )
 
     created_at: Mapped[datetime] = mapped_column(
