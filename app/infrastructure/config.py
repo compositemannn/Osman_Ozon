@@ -9,4 +9,4 @@
 #     )
 
 
-# settins = Settings()
+# settings = Settings()

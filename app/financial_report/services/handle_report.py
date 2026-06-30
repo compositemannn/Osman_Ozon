@@ -9,10 +9,13 @@ from app.financial_report.schemas.frontendDTOs import (
     ExpectedTable
 )
 from app.financial_report.schemas.ozonDTOs import (
-    OzonBuyoutItem,
     OzonBuyoutReportRequest,
-    OzonBuyoutReportResponse
+    OzonAccrualItem,
+    OzonAccrualReportResponse,
+    OzonTotalAmount
 )
+
+
 class ReportHandle:
     def __init__(self, repo):
         self.repo = repo
@@ -99,3 +102,43 @@ class ReportHandle:
                 total_clean=real_total_clean.quantize(Decimal("0.01"))
             )
         )
+    
+    async def update_payouts_from_ozon_data(self, ozon_data: OzonAccrualReportResponse, report_date: date) -> bool:
+        """
+        Принимает одну валидированную страницу начислений Ozon API,
+        фильтрует успешные доставки (выкупы) и обновляет информацию в БД.
+        Returns:
+            bool: True, если на этой странице был успешно обновлен хотя бы один заказ.
+        """
+       # Если массив начислений на текущей странице пустой, ловить нечего
+        if not ozon_data.accruals:
+            return False
+
+        # Флаг для отслеживания, обновили ли мы хотя бы один заказ
+        any_updated = False
+
+        # Проходимся по каждой финансовой операции на странице
+        for accrual in ozon_data.accruals:
+            # Нас интересуют только реальные начисления за доставленные товары (выкупы)
+            if accrual.accrued_category != "DELIVERED_PRODUCTS":
+                continue
+                
+            # unit_number — это номер отправления (posting_number в нашей БД)
+            posting_number = accrual.unit_number
+            if not posting_number:
+                continue
+
+            # Достаем сумму из вложенного объекта total_amount (она там строкой)
+            raw_amount = accrual.total_amount.amount
+            payout_amount = Decimal(raw_amount)
+
+            # Вызываем рабочий метод репозитория
+            await self.repo.update_order_payout(
+                posting_number=posting_number,
+                payout_amount=payout_amount,
+                payout_date=report_date
+            )
+            any_updated = True
+
+        return any_updated
+    

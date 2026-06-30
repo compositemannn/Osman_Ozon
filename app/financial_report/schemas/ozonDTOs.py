@@ -7,22 +7,25 @@ from typing import List, Optional
 class OzonBuyoutReportRequest(BaseModel):
     """Схема для отправки запроса в Ozon на получение отчета о выкупах"""
     # Озон обычно требует фильтр по датам или конкретный период
-    date_from: date = Field(..., description="Начало периода отчета")
-    date_to: date = Field(..., description="Конец периода отчета")
+    date: date = Field(..., description="День отчета")
+    last_id: date = Field(..., description="Идентификатор последнего значения на странице")
 
 
 # --- 1.2. Прием данных ИЗ Ozon API ---
-class OzonBuyoutItem(BaseModel):
-    """Схема для одного товара из массива ответа Ozon API"""
-    sku: int
-    posting_number: str
-    name: str
-    quantity: int
-    amount: Decimal  # Чистая сумма к начислению за этот товар
-    # Дополнительные поля из доки, если пригодятся в будущем:
-    buyout_price: Optional[Decimal] = None
-    seller_price_per_instance: Optional[Decimal] = None
+class OzonTotalAmount(BaseModel):
+    """Схема для итоговой суммы операции"""
+    amount: str = Field(..., description="Чистая сумма к начислению/списанию строкой")
+    currency: str = Field(..., description="Валюта операции")
 
-class OzonBuyoutReportResponse(BaseModel):
-    """Схема для полного ответа, который возвращает нам Ozon API (массив товаров)"""
-    result: List[OzonBuyoutItem]
+
+class OzonAccrualItem(BaseModel):
+    """Схема для одной финансовой операции из массива начислений Ozon"""
+    accrued_category: str = Field(..., description="Категория начисления (например, DELIVERED_PRODUCTS)")
+    unit_number: Optional[str] = Field(None, description="Номер отправления (posting_number в нашей БД)")
+    total_amount: OzonTotalAmount = Field(..., description="Объект с деталями итоговой суммы")
+
+
+class OzonAccrualReportResponse(BaseModel):
+    """Схема для полного ответа, который возвращает нам Ozon API (начисления за день)"""
+    accruals: List[OzonAccrualItem] = Field(..., description="Список начислений")
+    last_id: str = Field(..., description="Идентификатор последней записи для пагинации")
